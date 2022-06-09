@@ -20,6 +20,9 @@ import {
   Text,
   AmbientLight,
 } from 'troisjs'
+
+import imgUrl from './assets/images/f_polaroid.png'
+import fontUrl from './assets/fonts/helvetiker_regular.typeface.json'
 import Rain from './fx/rainfx'
 import gsap from 'gsap'
 // import chroma from 'chroma-js'
@@ -32,12 +35,12 @@ const showModal = ref(false)
 onMounted(() => {
   // animate
   renderer.value.onBeforeRender(animate)
-  console.log(light.value)
+  console.log(fontUrl)
   gsap.to(light.value.light.position, {
     x: 0.8,
     y: 0.9,
     z: 1,
-    duration: 10,
+    duration: 5,
     repeat: -1,
     yoyo: true,
   })
@@ -57,6 +60,7 @@ function animate() {
         width="512"
         height="512"
         shadow
+        antialias
       >
         <!--:orbit-ctrl="{ enableDamping: true, dampingFactor: 0.05 }"-->
         <Camera :position="{ z: 1 }" />
@@ -74,13 +78,13 @@ function animate() {
           <Mesh receive-shadow>
             <PlaneGeometry />
             <StandardMaterial ref="theTexture" color="white">
-              <Texture src="/static/images/f_polaroid.png"/>
+              <Texture :src=imgUrl />
             </StandardMaterial>
           </Mesh>
           <!--texto-->
           <Text
             text="sushi time!"
-            font-src="/static/fonts/helvetiker_regular.typeface.json"
+            :font-src=fontUrl
             align="center"
             size="0.1"
             height="0.01"
