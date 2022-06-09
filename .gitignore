@@ -61,6 +61,7 @@ typings/
 
 # Serverless directories
 .serverless
+dist
 
 # IDE / Editor
 .idea
