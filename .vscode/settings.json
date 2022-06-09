@@ -1,0 +1,33 @@
+{
+  // Theming
+  //"workbench.iconTheme": "city-lights-icons-vsc",
+  "window.zoomLevel": 1,
+  "editor.fontFamily": "Dank Mono",
+  //"editor.fontSize": 16,
+  "editor.fontLigatures": true,
+  "editor.comments.insertSpace": false,
+  "terminal.integrated.fontFamily": "Dank Mono",
+  "window.autoDetectColorScheme": true,
+  "workbench.preferredDarkColorTheme": "Palenight Operator",
+  "editor.codeLensFontSize": 13,
+  "editor.lineHeight": 1.75,
+  "editor.suggestFontSize": 15,
+  "editor.suggestLineHeight": 28,
+  "editor.semanticHighlighting.enabled": true,
+  "editor.linkedEditing": true,
+  "terminal.integrated.fontSize": 12,
+  "terminal.integrated.lineHeight": 1,
+  "debug.console.fontSize": 12,
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.excludeDirty": true,
+  "workbench.editor.limit.perEditorGroup": true,
+  "workbench.editor.limit.value": 6,
+  // More minimal UI
+  // Code
+  // Include "-" in word selection.
+  "editor.wordSeparators": "`~!@#%^&*()=+[{]}\\|;:'\",.<>/?",
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": true,
+  "editor.tabCompletion": "on",  
+}
+
