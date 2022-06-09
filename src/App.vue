@@ -80,7 +80,7 @@ function animate() {
           <!--texto-->
           <Text
             text="sushi time!"
-            font-src="/assets/fonts/helvetiker_regular.typeface.json"
+            font-src="../assets/fonts/helvetiker_regular.typeface.json"
             align="center"
             size="0.1"
             height="0.01"
