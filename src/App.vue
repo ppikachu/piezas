@@ -22,11 +22,11 @@ import {
 } from 'troisjs'
 
 import imgUrl from './assets/images/f_polaroid.png'
-import fontUrl from './assets/fonts/helvetiker_regular.typeface.json'
 import Rain from './fx/rainfx'
 import gsap from 'gsap'
 // import chroma from 'chroma-js'
 
+const fontUrl = '/fonts/helvetiker_regular.typeface.json'
 const renderer = ref()
 const light = ref()
 const theShader = ref()
