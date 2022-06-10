@@ -4,7 +4,7 @@ import { EffectPass } from 'troisjs'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 
 const props = {
-  texture: { type: String, default: '../assets/images/Audrey-Hepburn.jpg' },
+  texture: { type: String, default: '' },
 }
 
 export default defineComponent({

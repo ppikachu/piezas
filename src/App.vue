@@ -23,6 +23,7 @@ import {
 
 import imgUrl from './assets/images/f_polaroid.png'
 import Rain from './fx/rainfx'
+//import TroikaText from './components/TroikaText'
 import gsap from 'gsap'
 // import chroma from 'chroma-js'
 
@@ -102,12 +103,15 @@ function animate() {
       </Renderer>
     </div>
 
-    <button id="show-modal" class="btn btn-primary z-50" @click="showModal = true">Show Modal</button>
+    <button id="show-modal" class="btn z-50" @click="showModal = true">Show Modal</button>
     <Teleport to="body">
       <!-- use the modal component, pass in the prop -->
       <modal :show="showModal" @close="showModal = false">
         <template #header>
           <h3>custom header</h3>
+        </template>
+        <template #body>
+          custom body
         </template>
       </modal>
     </Teleport>

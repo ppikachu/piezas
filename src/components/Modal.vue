@@ -8,20 +8,20 @@ const props = defineProps({
   <Transition name="modal">
     <div v-if="show" class="modal-mask">
       <div class="modal-wrapper">
-        <div class="modal-container">
-          <div class="modal-header">
-            <slot name="header">default header</slot>
+        <div class="modal-container modal-box">
+          <div class="modal-header font-bold text-lg">
+            <slot name="header">
+              default header
+            </slot>
           </div>
-
-          <div class="modal-body">
+          <div class="modal-body py-4">
             <slot name="body">default body</slot>
           </div>
 
           <div class="modal-footer">
             <slot name="footer">
-              default footer
               <button
-                class="modal-default-button"
+                class="btn"
                 @click="$emit('close')"
               >OK</button>
             </slot>
@@ -58,19 +58,6 @@ const props = defineProps({
   border-radius: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
   transition: all 0.3s ease;
-}
-
-.modal-header h3 {
-  margin-top: 0;
-  color: #42b983;
-}
-
-.modal-body {
-  margin: 20px 0;
-}
-
-.modal-default-button {
-  float: right;
 }
 
 /*
