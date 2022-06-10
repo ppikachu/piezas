@@ -13,14 +13,12 @@ import {
   Texture,
   EffectComposer,
   RenderPass,
-  EffectPass,
-  UnrealBloomPass,
-  HalftonePass,
-  Sphere,
+
   Text,
   AmbientLight,
 } from 'troisjs'
 
+import { Text as TroikaText } from 'troika-three-text'
 import imgUrl from './assets/images/f_polaroid.png'
 import Rain from './fx/rainfx'
 //import TroikaText from './components/TroikaText'
@@ -29,14 +27,30 @@ import gsap from 'gsap'
 
 const fontUrl = '/fonts/helvetiker_regular.typeface.json'
 const renderer = ref()
+const scene = ref()
 const light = ref()
 const theShader = ref()
 const showModal = ref(false)
+const  PARAMS = {
+  credit:            'Fight Club',
+  message:           'Llueve',
+  messageY:          'justify-end',
+  fontSize:          0.15,
+  fontWeight:        'bold',
+  font:              'Bangers',
+  fontColor:         0xffffff,
+  antialias:         false,
+  messageOver:       false,
+  enableRain:        true,
+  param1:            0.3,
+  param2:            1,
+}
 
 onMounted(() => {
   // animate
   renderer.value.onBeforeRender(animate)
   console.log(fontUrl)
+  makeTroikaText()
   gsap.to(light.value.light.position, {
     x: 0.8,
     y: 0.9,
@@ -50,6 +64,64 @@ onMounted(() => {
 function animate() {
   if (!theShader.value) return
   theShader.value.pass.uniforms.u_time.value += 0.01
+}
+
+function makeTroikaText() {
+  const myText = new TroikaText()
+  scene.value.add(myText)
+  // Set properties to configure:
+  myText.text = PARAMS.message
+  myText.fontSize = PARAMS.fontSize
+  myText.color = PARAMS.fontColor
+  myText.anchorX = 'center'
+  myText.anchorY = 'middle'
+  myText.maxWidth = 1.5
+  myText.textAlign = 'center'
+  // myText.overflowWrap = 'break-word'
+  myText.lineHeight = .8
+
+  // fix for cross site error
+  var url = 'http://themes.googleusercontent.com/static/fonts/anonymouspro/v3/Zhfjj_gat3waL4JSju74E-V_5zh5b-_HiooIRUBwn1A.ttf'
+  myText.font = url
+  // Update the rendering:
+  myText.sync()
+}
+
+function updateTroikaText() {
+  // Set properties to configure:
+  myText.fontSize = PARAMS.fontSize*.005//TODO: fix this
+  myText.color = PARAMS.fontColor
+  myText.anchorX = 'center'
+  myText.anchorY = 'middle'
+  myText.maxWidth = 1.5
+  myText.textAlign = 'center'
+  myText.overflowWrap = 'break-word'
+  myText.lineHeight = .8
+  textPosition()
+  // Update the rendering:
+  myText.sync()
+}
+
+function textPosition() {
+  var position = 0
+  var margin = 0.7, top = margin, bottom = -margin
+
+  if (frameAspect > 1) {
+    top = margin - (1/(h/(w / 2 - h / 2)))
+    bottom = -top
+  }
+  switch (PARAMS.messageY) {
+    case 'justify-start':
+      position = top
+      break
+    case 'justify-center':
+      position = 0
+      break
+    case 'justify-end':
+      position = bottom
+      break
+  }
+  myText.position.set(0, position, 0)
 }
 </script>
 
@@ -65,7 +137,7 @@ function animate() {
       >
         <!--:orbit-ctrl="{ enableDamping: true, dampingFactor: 0.05 }"-->
         <Camera :position="{ z: 1 }" />
-        <Scene>
+        <Scene ref="scene">
           <AmbientLight intensity="0.5" />
           <!--<PointLight :color="0x00ee99" :position="{ x:-0.1, y: -1, z: 2 }" intensity="1" />-->
           <PointLight
@@ -84,7 +156,7 @@ function animate() {
           </Mesh>
           <!--texto-->
           <Text
-            text="sushi time!"
+            :text=PARAMS.message
             :font-src=fontUrl
             align="center"
             size="0.1"
