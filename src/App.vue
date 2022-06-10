@@ -81,7 +81,7 @@ function makeTroikaText() {
   myText.lineHeight = .8
 
   // fix for cross site error
-  var url = 'http://themes.googleusercontent.com/static/fonts/anonymouspro/v3/Zhfjj_gat3waL4JSju74E-V_5zh5b-_HiooIRUBwn1A.ttf'
+  var url = 'https://themes.googleusercontent.com/static/fonts/anonymouspro/v3/Zhfjj_gat3waL4JSju74E-V_5zh5b-_HiooIRUBwn1A.ttf'
   myText.font = url
   // Update the rendering:
   myText.sync()
