@@ -31,6 +31,7 @@ const scene = ref()
 const light = ref()
 const theShader = ref()
 const showModal = ref(false)
+
 const  PARAMS = {
   credit:            'Fight Club',
   message:           'Llueve',
@@ -178,14 +179,14 @@ function textPosition() {
     <button id="show-modal" class="btn z-50" @click="showModal = true">Show Modal</button>
     <Teleport to="body">
       <!-- use the modal component, pass in the prop -->
-      <modal :show="showModal" @close="showModal = false">
+      <Modal :show="showModal" @close="showModal = false">
         <template #header>
           <h3>custom header</h3>
         </template>
         <template #body>
           custom body
         </template>
-      </modal>
+      </Modal>
     </Teleport>
   </div>
 </template>
