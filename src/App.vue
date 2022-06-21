@@ -1,192 +1,104 @@
 <script setup>
-import Modal from './components/Modal.vue'
 import { ref, onMounted } from 'vue'
 import {
   Renderer,
   Scene,
   Camera,
   PointLight,
+  Sphere,
   Mesh,
-  PlaneGeometry,
+  Plane,
   BasicMaterial,
   StandardMaterial,
+  PhongMaterial,
   Texture,
   EffectComposer,
   RenderPass,
-
-  Text,
+  GltfModel,
   AmbientLight,
 } from 'troisjs'
-
-import { Text as TroikaText } from 'troika-three-text'
+import {
+  AnimationClip,
+  AnimationMixer,
+  KeyframeTrack,
+  Clock
+} from 'three'
 import imgUrl from './assets/images/f_polaroid.png'
-import Rain from './fx/rainfx'
 //import TroikaText from './components/TroikaText'
 import gsap from 'gsap'
 // import chroma from 'chroma-js'
 
-const fontUrl = '/fonts/helvetiker_regular.typeface.json'
-const renderer = ref()
-const scene = ref()
-const light = ref()
-const theShader = ref()
-const showModal = ref(false)
-
 const  PARAMS = {
-  credit:            'Fight Club',
-  message:           'Llueve',
-  messageY:          'justify-end',
-  fontSize:          0.15,
-  fontWeight:        'bold',
-  font:              'Bangers',
-  fontColor:         0xffffff,
   antialias:         false,
-  messageOver:       false,
-  enableRain:        true,
   param1:            0.3,
   param2:            1,
 }
 
+const scene = ref()
+const light = ref()
+const renderer = ref()
+const mesh = ref()
+var piezaLight, piezaHeavy, mixer
+var timer = 0
+var clock = new Clock()
+var scaleTrack = new KeyframeTrack('.rotation[z]', [0,4], [0,0,3,3,0,1])
+var clip = new AnimationClip("bang", 4, [ scaleTrack ])
+
 onMounted(() => {
-  // animate
-  renderer.value.onBeforeRender(animate)
-  console.log(fontUrl)
-  makeTroikaText()
-  gsap.to(light.value.light.position, {
-    x: 0.8,
-    y: 0.9,
-    z: 1,
-    duration: 5,
-    repeat: -1,
-    yoyo: true,
-  })
+  console.clear()
 })
 
+function onReady(model){
+  console.log("done loading model")
+  piezaLight = mesh.value.scene.children[3].children[0]
+  piezaHeavy = mesh.value.scene.children[2]
+  // animate
+  // 剪辑clip作为参数，通过混合器clipAction方法返回一个操作对象AnimationAction
+  mixer = new AnimationMixer(piezaLight)
+  var AnimationAction = mixer.clipAction(clip)
+  //通过操作Action设置播放方式
+  //AnimationAction.timeScale = 20;//默认1，可以调节播放速度
+  // AnimationAction.loop = THREE.LoopOnce; //不循环播放
+  AnimationAction.play()
+  console.log(AnimationAction)
+
+  // pre
+  renderer.value.onBeforeRender(animate)
+}
+
+function onProgress(model){
+  console.log("loading stuff")
+}
+
 function animate() {
-  if (!theShader.value) return
-  theShader.value.pass.uniforms.u_time.value += 0.01
-}
-
-function makeTroikaText() {
-  const myText = new TroikaText()
-  scene.value.add(myText)
-  // Set properties to configure:
-  myText.text = PARAMS.message
-  myText.fontSize = PARAMS.fontSize
-  myText.color = PARAMS.fontColor
-  myText.anchorX = 'center'
-  myText.anchorY = 'middle'
-  myText.maxWidth = 1.5
-  myText.textAlign = 'center'
-  // myText.overflowWrap = 'break-word'
-  myText.lineHeight = .8
-
-  // fix for cross site error
-  var url = 'https://themes.googleusercontent.com/static/fonts/anonymouspro/v3/Zhfjj_gat3waL4JSju74E-V_5zh5b-_HiooIRUBwn1A.ttf'
-  myText.font = url
-  // Update the rendering:
-  myText.sync()
-}
-
-function updateTroikaText() {
-  // Set properties to configure:
-  myText.fontSize = PARAMS.fontSize*.005//TODO: fix this
-  myText.color = PARAMS.fontColor
-  myText.anchorX = 'center'
-  myText.anchorY = 'middle'
-  myText.maxWidth = 1.5
-  myText.textAlign = 'center'
-  myText.overflowWrap = 'break-word'
-  myText.lineHeight = .8
-  textPosition()
-  // Update the rendering:
-  myText.sync()
-}
-
-function textPosition() {
-  var position = 0
-  var margin = 0.7, top = margin, bottom = -margin
-
-  if (frameAspect > 1) {
-    top = margin - (1/(h/(w / 2 - h / 2)))
-    bottom = -top
-  }
-  switch (PARAMS.messageY) {
-    case 'justify-start':
-      position = top
-      break
-    case 'justify-center':
-      position = 0
-      break
-    case 'justify-end':
-      position = bottom
-      break
-  }
-  myText.position.set(0, position, 0)
+  //piezaLight.rotation.z = Math.abs(Math.sin(timer)*Math.PI*1.5)-1.5
+  //piezaHeavy.rotation.z = Math.abs(Math.sin(timer)*Math.PI*1.5)+Math.PI/2
+  //timer += -0.01
+  mixer.update(clock.getDelta())
 }
 </script>
 
 <template>
-  <div ref="sushi_container" class="container mx-auto flex flex-col space-y-8 justify-center items-center h-screen">
-    <div class="absolutexx">
-      <Renderer
-        ref="renderer"
-        width="512"
-        height="512"
-        shadow
-        antialias
-      >
-        <!--:orbit-ctrl="{ enableDamping: true, dampingFactor: 0.05 }"-->
-        <Camera :position="{ z: 1 }" />
-        <Scene ref="scene">
-          <AmbientLight intensity="0.5" />
-          <!--<PointLight :color="0x00ee99" :position="{ x:-0.1, y: -1, z: 2 }" intensity="1" />-->
-          <PointLight
-            ref="light"
-            intensity="0.5"
-            cast-shadow
-            :position="{ x:-.8, y: 0.9, z: 1 }"
-            :shadow-map-size="{ width: 1024, height: 1024 }"
-          />
-          <!--BG card-->
-          <Mesh receive-shadow>
-            <PlaneGeometry />
-            <StandardMaterial ref="theTexture" color="white">
-              <Texture :src=imgUrl />
-            </StandardMaterial>
-          </Mesh>
-          <!--texto-->
-          <Text
-            :text=PARAMS.message
-            :font-src=fontUrl
-            align="center"
-            size="0.1"
-            height="0.01"
-            :position="{ x: 0, y: -0.25, z: 0.02 }"
-            cast-shadow
-          >
-            <StandardMaterial />
-          </Text>
-        </Scene>
-        <!--FX-->
-        <EffectComposer>
-          <RenderPass />
-          <Rain ref="theShader" />
-        </EffectComposer>
-      </Renderer>
-    </div>
-
-    <button id="show-modal" class="btn z-50" @click="showModal = true">Show Modal</button>
-    <Teleport to="body">
-      <!-- use the modal component, pass in the prop -->
-      <Modal :show="showModal" @close="showModal = false">
-        <template #header>
-          <h3>custom header</h3>
-        </template>
-        <template #body>
-          custom body
-        </template>
-      </Modal>
-    </Teleport>
-  </div>
+<div class=" h-screen">
+  <Renderer
+    ref="renderer"
+    antialias
+    :orbit-ctrl="{ enableDamping: true }"
+    resize
+    shadow
+  >
+    <Camera :position="{ x: 1, y: 2, z: 10 }" />
+    <Scene ref="scene" background="blue">
+      <!--<AmbientLight ref="light" />-->
+      <PointLight ref="light" color="#ffffff" :intensity="1" :position="{ x: 15, y: 10, z: 20 }" castShadow="true">
+        <!--<Sphere :radius="2" />-->
+      </PointLight>
+18    <GltfModel ref="mesh" src="/glb/pieza_light/light.gltf" :position="{ x: -3.18, y: 0.4 }" @progress="onProgress" @ready="onReady" />
+      <GltfModel src="/glb/pieza_heavy/heavy.gltf" :position="{ x: 3.18, y: -0.4 }" @progress="onProgress" />
+      <Plane :width="2000" :height="2000" :rotation="{ x: -Math.PI / 2 }" receive-shadow>
+        <PhongMaterial color="#999999" :props="{ depthWrite: false }" />
+      </Plane>
+    </Scene>
+  </Renderer>
+</div>
 </template>
