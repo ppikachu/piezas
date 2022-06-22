@@ -14,54 +14,56 @@ import {
   Texture,
   EffectComposer,
   RenderPass,
-  GltfModel,
   AmbientLight,
 } from 'troisjs'
 import {
-  AnimationClip,
   AnimationMixer,
-  KeyframeTrack,
   Clock
 } from 'three'
-import imgUrl from './assets/images/f_polaroid.png'
-//import TroikaText from './components/TroikaText'
-import gsap from 'gsap'
-// import chroma from 'chroma-js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 const  PARAMS = {
   antialias:         false,
   param1:            0.3,
   param2:            1,
 }
-
 const scene = ref()
 const light = ref()
 const renderer = ref()
-const mesh = ref()
-var piezaLight, piezaHeavy, mixer
-var timer = 0
+const meshObject = ref()
+const plane = ref()
 var clock = new Clock()
-var scaleTrack = new KeyframeTrack('.rotation[z]', [0,4], [0,0,3,3,0,1])
-var clip = new AnimationClip("bang", 4, [ scaleTrack ])
+var mixer
 
 onMounted(() => {
   console.clear()
+  const loader = new GLTFLoader()
+  loader.load( '/glb/piezas/piezas_low_0003.gltf', function ( gltf ) {
+    const model = gltf.scene
+    scene.value.add(model)
+    //TODO: shadow
+    model.children[0].children[0].castShadow = true
+    model.children[0].children[0].receiveShadow = true
+    model.children[1].children[0].castShadow = true
+    model.children[1].children[0].receiveShadow = true
+    
+    //animation
+    mixer = new AnimationMixer(model)
+    mixer.clipAction(gltf.animations[0] ).play()
+    console.log(light.value)
+    animate()
+  }, undefined, function (e) {
+    console.error(e)
+  } )
 })
 
 function onReady(model){
-  console.log("done loading model")
-  piezaLight = mesh.value.scene.children[3].children[0]
-  piezaHeavy = mesh.value.scene.children[2]
-  // animate
+  const piezas = meshObject.value
+  console.log("done loading model:", piezas)
   // 剪辑clip作为参数，通过混合器clipAction方法返回一个操作对象AnimationAction
-  mixer = new AnimationMixer(piezaLight)
-  var AnimationAction = mixer.clipAction(clip)
-  //通过操作Action设置播放方式
-  //AnimationAction.timeScale = 20;//默认1，可以调节播放速度
-  // AnimationAction.loop = THREE.LoopOnce; //不循环播放
-  AnimationAction.play()
-  console.log(AnimationAction)
-
+  mixer = new AnimationMixer(piezas)
+  const action = mixer.clipAction(piezas.o3d.animations[1])
+  action.play()
   // pre
   renderer.value.onBeforeRender(animate)
 }
@@ -71,10 +73,9 @@ function onProgress(model){
 }
 
 function animate() {
-  //piezaLight.rotation.z = Math.abs(Math.sin(timer)*Math.PI*1.5)-1.5
-  //piezaHeavy.rotation.z = Math.abs(Math.sin(timer)*Math.PI*1.5)+Math.PI/2
-  //timer += -0.01
+  requestAnimationFrame( animate );
   mixer.update(clock.getDelta())
+  //renderer.render( scene, camera );
 }
 </script>
 
@@ -88,15 +89,13 @@ function animate() {
     shadow
   >
     <Camera :position="{ x: 1, y: 2, z: 10 }" />
-    <Scene ref="scene" background="blue">
-      <!--<AmbientLight ref="light" />-->
-      <PointLight ref="light" color="#ffffff" :intensity="1" :position="{ x: 15, y: 10, z: 20 }" castShadow="true">
-        <!--<Sphere :radius="2" />-->
+    <Scene ref="scene">
+      <AmbientLight ref="light" />
+      <PointLight ref="light" color="#ffffff" :intensity="1" :position="{ x: 5, y:20, z: 20 }" cast-shadow :shadow-map-size="{ width: 1024, height: 1024 }">
+        <Sphere :radius="20" />
       </PointLight>
-18    <GltfModel ref="mesh" src="/glb/pieza_light/light.gltf" :position="{ x: -3.18, y: 0.4 }" @progress="onProgress" @ready="onReady" />
-      <GltfModel src="/glb/pieza_heavy/heavy.gltf" :position="{ x: 3.18, y: -0.4 }" @progress="onProgress" />
-      <Plane :width="2000" :height="2000" :rotation="{ x: -Math.PI / 2 }" receive-shadow>
-        <PhongMaterial color="#999999" :props="{ depthWrite: false }" />
+      <Plane ref="plane" :width="1000" :height="1000" :rotation="{ x: -Math.PI / 2 }" :position="{y: -6}" receive-shadow>
+        <StandardMaterial color="#999999" />
       </Plane>
     </Scene>
   </Renderer>
