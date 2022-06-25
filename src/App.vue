@@ -6,18 +6,8 @@ import {
   Scene,
   Camera,
   PointLight,
-  Sphere,
-  Mesh,
   Plane,
-  BasicMaterial,
   StandardMaterial,
-  PhongMaterial,
-  Texture,
-  FXAAPass,
-  UnrealBloomPass,
-  BokehPass,
-  FilmPass,
-  SMAAPass,
   AmbientLight,
 } from 'troisjs'
 import { ShockWaveEffect, VignetteEffect, BloomEffect, EffectComposer, EffectPass, RenderPass, BrightnessContrastEffect, BlendFunction } from 'postprocessing'
@@ -26,24 +16,23 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 import imgUrl from './assets/images/2294472375_24a3b8ef46_o.jpeg'
 
-const PARAMS = {
-  param1:            0.3,
-  param2:            1,
-  planeSize:         50,
-}
 const settings = {
  antialias: false,
 }
+const rendererRef = ref()
 const sceneRef = ref()
 const cameraRef = ref()
-const light = ref()
-const rendererRef = ref()
-const meshObject = ref()
-const plane = ref()
 const target = new Vector3(0, 0, 0)
+//const light = ref()
+//const plane = ref()
+//const PARAMS = {
+//  param1:            0.3,
+//  param2:            1,
+//  planeSize:         50,
+//}
 
 var clock = new Clock()
-let mixer, textureEquirec, sphereMesh, sphereMaterial, composer, camera, renderer, scene, shockWaveEffect
+let mixer, textureEquirec, sphereMesh, sphereMaterial, composer, camera, renderer, scene, shockWaveEffect, hit
 
 onMounted(() => {
   console.clear()
@@ -107,10 +96,15 @@ onMounted(() => {
     //piezaLight.material.needsUpdate = true
 
     // animation
+    hit = true
     mixer = new AnimationMixer(model)
-    mixer.clipAction(gltf.animations[0] ).play()
+    mixer.clipAction(gltf.animations[0]).play()
+    mixer.addEventListener( 'loop', () => {
+      shockWaveEffect.explode()
+      hit = true
+    })
+    console.log(mixer)
     animate()
-    
   },
   undefined, function (e) {
     console.error(e)
@@ -120,29 +114,14 @@ onMounted(() => {
   onResize()
 })
 
-function onReady(model){
-  const piezas = meshObject.value
-  // AnimationAction
-  mixer = new AnimationMixer(piezas)
-  const action = mixer.clipAction(piezas.o3d.animations[1])
-  action.play()
-  // pre
-  renderer.value.onBeforeRender(animate)
-}
-
-function onProgress(model){
-  console.log("loading stuff")
-}
-
 function animate() {
   requestAnimationFrame(animate)
   mixer.update(clock.getDelta())
-  composer.render()
-  if (clock.elapsedTime >= 1.5) {
+  if (mixer._actions[0].time > 1.5 && hit) {
     shockWaveEffect.explode()
-    clock.start()
+    hit = false
   }
-  //if (theShader.value) theShader.value.pass.uniforms.u_time.value += 0.01
+  composer.render()
 }
 
 // Resizing
