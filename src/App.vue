@@ -1,39 +1,28 @@
 <script setup>
 import { ref, onMounted, onBeforeMount } from 'vue'
-
 import {
   Renderer,
   Scene,
   Camera,
-  PointLight,
+  GltfModel,
   Plane,
-  StandardMaterial,
   AmbientLight,
 } from 'troisjs'
 import { ShockWaveEffect, VignetteEffect, BloomEffect, EffectComposer, EffectPass, RenderPass, BrightnessContrastEffect, BlendFunction } from 'postprocessing'
-import { AnimationMixer, Clock, TextureLoader, EquirectangularReflectionMapping, sRGBEncoding, ACESFilmicToneMapping, Vector3, FloatType, PMREMGenerator } from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { AnimationMixer, Clock, TextureLoader, EquirectangularReflectionMapping, sRGBEncoding, ACESFilmicToneMapping, Vector3 } from 'three'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
+import { Resizer } from './components/Resizer'
+import Title from './components/Title.vue'
 
-import imgUrl from './assets/images/2294472375_24a3b8ef46_o.jpeg'
-
-const settings = {
- antialias: false,
-}
 const rendererRef = ref()
 const sceneRef = ref()
 const cameraRef = ref()
+const gltfRef = ref()
 const target = new Vector3(0, 0, 0)
-//const light = ref()
-//const plane = ref()
-//const PARAMS = {
-//  param1:            0.3,
-//  param2:            1,
-//  planeSize:         50,
-//}
+const hdrimgUrl = '/images/Env_PinkGrad_512.hdr'
 
 var clock = new Clock()
-let mixer, textureEquirec, sphereMesh, sphereMaterial, composer, camera, renderer, scene, shockWaveEffect, hit
+let mixer, gltfMesh, composer, camera, orbitCtrl, renderer, scene, shockWaveEffect, hit
 
 onBeforeMount(() => {
   console.clear()
@@ -43,126 +32,119 @@ onMounted(() => {
   renderer = rendererRef.value.renderer
   scene = sceneRef.value.scene
   camera = cameraRef.value.camera
-  
-  // postprocessing
-  renderer.outputEncoding = sRGBEncoding
-  //renderer.toneMapping = ACESFilmicToneMapping
+  orbitCtrl = rendererRef.value.three.cameraCtrl
+  gltfMesh = gltfRef.value.scene
+  //renderer.outputEncoding = sRGBEncoding
+  renderer.toneMapping = ACESFilmicToneMapping
+  // turn on the physically correct lighting model
+  //renderer.physicallyCorrectLights = true
+
+  //#region postprocessing
+  composer = new EffectComposer(renderer)
   shockWaveEffect = new ShockWaveEffect(camera, target, {
-    speed: 1.25,
-    maxRadius: 0.01,
-    waveSize: 0.05,
-    amplitude: 0.05
+    speed: 0.25,
+    maxRadius: 0.5,
+    waveSize: 0.03,
+    amplitude: 0.003
   })
   const bloomEffect = new BloomEffect({
     //blendFunction: BlendFunction.SCREEN,
-    luminanceThreshold: 0.2,
+    luminanceThreshold: 0.1,
     intensity: 0.5,
-    radius: 0.8,
+    //radius: 0.8,
   })
   const brightnessContrastEffect = new BrightnessContrastEffect({
     //blendFunction: BlendFunction.SCREEN,
-    brightness: 0.3,
-    contrast: 0.6,
+    brightness: 0.2,
+    contrast: 0.3,
   })
   const vignetteEffect = new VignetteEffect()
   const renderPass = new RenderPass(scene, camera)
   const effectPass = new EffectPass(camera,
     shockWaveEffect,
-    bloomEffect,
-    brightnessContrastEffect,
+    //bloomEffect,
+    //brightnessContrastEffect,
     //vignetteEffect
   )
-
   // apply postprocessing
-  composer = new EffectComposer(renderer)
-  //composer.addPass(renderPass)
-  //composer.addPass(effectPass)
+  composer.addPass(renderPass)
+  composer.addPass(effectPass)
+  //#endregion
 
-  // piezas
-  const loader = new GLTFLoader()
-  loader.load( '/glb/piezas/piezas_low_0004.gltf', function ( gltf ) {
-    const model = gltf.scene
-    const piezaHeavy = model.children[0].children[0]
-    const piezaLight = model.children[1].children[0]
-    scene.add(model)
-    //console.log(rendererRef.value.renderer)
-    // self shadowing
-    piezaHeavy.castShadow = true
-    piezaHeavy.receiveShadow = true
-    piezaLight.castShadow = true
-    piezaLight.receiveShadow = true
-    // environment
-    const hdrimgUrl = '/images/sample.hdr'
-
-    const loadedTexture = new TextureLoader().load(imgUrl)
-    //const loadedTexture = new RGBELoader().load(hdrimgUrl)
-    //loadedTexture.setDataType(FloatType)
-    const gen = new PMREMGenerator(renderer)
-    const texture = loadedTexture
-    //const texture = gen.fromEquirectangular(loadedTexture).texture
-    texture.mapping = EquirectangularReflectionMapping
-    texture.encoding = sRGBEncoding
-    //console.log(texture)
-
-    scene.background = texture
-    piezaHeavy.material.envMap = texture
-    piezaLight.material.envMap = texture
-
-    // animation
-    hit = true
-    mixer = new AnimationMixer(model)
-    mixer.clipAction(gltf.animations[0]).play()
-    mixer.addEventListener( 'loop', () => {
-      shockWaveEffect.explode()
-      hit = true
-    })
-    //console.log(mixer)
-    animate()
-  },
-  undefined, function (e) {
-    console.error(e)
-  })
-
-  window.addEventListener("resize", onResize);
-  onResize()
+  // resiser (resize the canvas and composer)
+  const resizer = new Resizer(camera, composer)
+  orbitCtrl.enabled = false
 })
+
+function onReady(gltf) {
+  const model = gltf.scene
+  const piezaHeavy = model.children[0].children[0]
+  const piezaLight = model.children[1].children[0]
+  // resize
+  const globalScale = 0.3
+  gltfMesh.scale.set(globalScale,globalScale,globalScale)
+  // self shadowing
+  piezaHeavy.castShadow = true
+  piezaHeavy.receiveShadow = true
+  piezaLight.castShadow = true
+  piezaLight.receiveShadow = true
+  // animation
+  hit = true
+  mixer = new AnimationMixer(model)
+  mixer.clipAction(gltf.animations[0]).play()
+  mixer.addEventListener( 'loop', () => {
+    shockWaveEffect.explode()
+    hit = true
+  })
+  animate()
+
+  // environment
+  const loadedTexture = new RGBELoader().load(hdrimgUrl, () => {
+    const envMap = loadedTexture
+    envMap.mapping = EquirectangularReflectionMapping
+    //envMap.needsUpdate = true
+    //console.log('loaded:',envMap)
+    piezaHeavy.material.envMap = envMap
+    piezaLight.material.envMap = envMap
+  })
+}
 
 function animate() {
   requestAnimationFrame(animate)
   mixer.update(clock.getDelta())
+  // hits the pieza
   if (mixer._actions[0].time > 1.5 && hit) {
     shockWaveEffect.explode()
     hit = false
   }
   //FX render pass
-  //composer.render()
-}
-
-// Resizing
-function onResize(event) {
-  const width = window.innerWidth
-  const height = window.innerHeight
-  composer.setSize(width, height)
+  composer.render()
 }
 </script>
 
 <template>
-<div class=" h-screen">
-  <Renderer
-    ref="rendererRef"
-    :antialias="settings.antialias"
-    :orbit-ctrl="{ enableDamping: true }"
-    resize
-    shadow
-  >
-    <Camera ref="cameraRef" :position="{ x: 1, y: 2, z: 10 }" />
-    <Scene ref="sceneRef">
-      <!--<AmbientLight ref="light" />-->
-      <PointLight ref="light" color="#ffffff" :intensity="5" :distance="30" :position="{ x:1, y:15, z:15 }" cast-shadow :shadow-map-size="{ width: 1024, height: 1024 }" />
-      <!--<Plane ref="plane" :width="PARAMS.planeSize" :height="PARAMS.planeSize" :rotation="{ x: -Math.PI / 2 }" :position="{y: -4}" receive-shadow>
-        <StandardMaterial color="#2299EE" />
-      </Plane>-->
-    </Scene>
-  </Renderer>
-</div>
+  <div class="h-screen flex items-center bg-gradient-to-b from-gray-300 via-slate-400 to-gray-500">
+    <Title>
+        <template #header>Acción / Reacción</template>
+        <template #body>un momento de reflexión</template>
+    </Title>
+    <Renderer
+      ref="rendererRef"
+      :alpha="true"
+      :orbit-ctrl="{
+        enableDamping: true
+      }"
+      shadow
+    >
+      <Camera ref="cameraRef" :position="{ x: 0, y: 0, z: 4 }" />
+      <Scene ref="sceneRef">
+        <GltfModel
+          ref="gltfRef"
+          src="/glb/piezas/piezas_low_0004.gltf"
+          @load="onReady"
+        />
+        <!--<AmbientLight ref="light" />-->
+      </Scene>
+    </Renderer>
+  </div>
 </template>
