@@ -22,7 +22,7 @@ const target = new Vector3(0, 0, 0)
 const hdrimgUrl = '/images/Env_PinkGrad_512.hdr'
 
 var clock = new Clock()
-let mixer, gltfMesh, composer, camera, orbitCtrl, renderer, scene, shockWaveEffect, hit
+let audio, mixer, gltfMesh, composer, camera, orbitCtrl, renderer, scene, shockWaveEffect, hit
 
 onBeforeMount(() => {
   console.clear()
@@ -34,6 +34,7 @@ onMounted(() => {
   camera = cameraRef.value.camera
   orbitCtrl = rendererRef.value.three.cameraCtrl
   gltfMesh = gltfRef.value.scene
+  audio = new Audio("/glb/piezas/piezas_0.mp3");
   //renderer.outputEncoding = sRGBEncoding
   renderer.toneMapping = ACESFilmicToneMapping
   // turn on the physically correct lighting model
@@ -93,7 +94,7 @@ function onReady(gltf) {
   mixer = new AnimationMixer(model)
   mixer.clipAction(gltf.animations[0]).play()
   mixer.addEventListener( 'loop', () => {
-    shockWaveEffect.explode()
+    hitIt()
     hit = true
   })
   animate()
@@ -109,12 +110,17 @@ function onReady(gltf) {
   })
 }
 
+function hitIt() {
+  shockWaveEffect.explode()
+  audio.play()
+}
+
 function animate() {
   requestAnimationFrame(animate)
   mixer.update(clock.getDelta())
   // hits the pieza
   if (mixer._actions[0].time > 1.5 && hit) {
-    shockWaveEffect.explode()
+    hitIt()
     hit = false
   }
   //FX render pass
