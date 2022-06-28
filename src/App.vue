@@ -22,7 +22,7 @@ const target = new Vector3(0, 0, 0)
 const hdrimgUrl = '/images/Env_PinkGrad_512.hdr'
 
 var clock = new Clock()
-let audio, mixer, gltfMesh, composer, camera, orbitCtrl, renderer, scene, shockWaveEffect, hit
+let audio0,audio1,audio2,audio3, mixer, gltfMesh, composer, camera, orbitCtrl, renderer, scene, shockWaveEffect
 
 onBeforeMount(() => {
   console.clear()
@@ -34,11 +34,16 @@ onMounted(() => {
   camera = cameraRef.value.camera
   orbitCtrl = rendererRef.value.three.cameraCtrl
   gltfMesh = gltfRef.value.scene
-  audio = new Audio("/glb/piezas/piezas_0.mp3");
+  // audio setup
+  audio0 = new Audio("/glb/piezas/piezas_0.mp3")
+  audio1 = new Audio("/glb/piezas/piezas_1.mp3")
+  audio2 = new Audio("/glb/piezas/piezas_2.mp3")
+  audio3 = new Audio("/glb/piezas/piezas_3.mp3")
+
   //renderer.outputEncoding = sRGBEncoding
   renderer.toneMapping = ACESFilmicToneMapping
   // turn on the physically correct lighting model
-  //renderer.physicallyCorrectLights = true
+  renderer.physicallyCorrectLights = true
 
   //#region postprocessing
   composer = new EffectComposer(renderer)
@@ -90,15 +95,10 @@ function onReady(gltf) {
   piezaLight.castShadow = true
   piezaLight.receiveShadow = true
   // animation
-  hit = true
   mixer = new AnimationMixer(model)
   mixer.clipAction(gltf.animations[0]).play()
-  mixer.addEventListener( 'loop', () => {
-    hitIt()
-    hit = true
-  })
+  mixer.addEventListener( 'loop', () => { hitIt() } )
   animate()
-
   // environment
   const loadedTexture = new RGBELoader().load(hdrimgUrl, () => {
     const envMap = loadedTexture
@@ -110,19 +110,44 @@ function onReady(gltf) {
   })
 }
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
+function smoothstep (min, max, value) {
+  var x = Math.max(0, Math.min(1, (value-min)/(max-min)))
+  return x*x*(3 - 2*x)
+}
+
 function hitIt() {
   shockWaveEffect.explode()
-  audio.play()
+  switch (getRandomInt(5)) {
+    case 0:
+      audio0.play()
+      break;
+    case 1:
+      audio1.play()
+      break;
+    case 2:
+      audio2.play()
+      break;
+    case 3:
+      audio3.play()
+      break;
+    default:
+      break;
+  }
 }
 
 function animate() {
   requestAnimationFrame(animate)
   mixer.update(clock.getDelta())
-  // hits the pieza
-  if (mixer._actions[0].time > 1.5 && hit) {
+  // hits the pieza?
+  if (mixer._actions[0].time > 1.5 && mixer._actions[0].time < 1.52) { //#HACK: puede saltar un frame o duplicarse el sonido
     hitIt()
-    hit = false
   }
+  // rotate camera
+  camera.rotation.z = Math.PI*smoothstep(-0.8, 0.8, Math.sin(clock.getElapsedTime()/10))
   //FX render pass
   composer.render()
 }
@@ -137,20 +162,23 @@ function animate() {
     <Renderer
       ref="rendererRef"
       :alpha="true"
-      :orbit-ctrl="{
-        enableDamping: true
-      }"
       shadow
     >
-      <Camera ref="cameraRef" :position="{ x: 0, y: 0, z: 4 }" />
+      <Camera ref="cameraRef" :position="{ x: 0, y: 0, z: 3.5 }" />
       <Scene ref="sceneRef">
         <GltfModel
           ref="gltfRef"
           src="/glb/piezas/piezas_low_0004.gltf"
           @load="onReady"
         />
-        <!--<AmbientLight ref="light" />-->
+        <AmbientLight ref="light" />
       </Scene>
     </Renderer>
   </div>
 </template>
+
+<style>
+body {
+  overflow: hidden;
+}
+</style>
