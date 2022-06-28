@@ -5,11 +5,10 @@ import {
   Scene,
   Camera,
   GltfModel,
-  Plane,
   AmbientLight,
 } from 'troisjs'
-import { ShockWaveEffect, VignetteEffect, BloomEffect, EffectComposer, EffectPass, RenderPass, BrightnessContrastEffect, BlendFunction } from 'postprocessing'
-import { AnimationMixer, Clock, TextureLoader, EquirectangularReflectionMapping, sRGBEncoding, ACESFilmicToneMapping, Vector3 } from 'three'
+import { ShockWaveEffect, VignetteEffect, BloomEffect, EffectComposer, EffectPass, RenderPass, BrightnessContrastEffect,  BlendFunction } from 'postprocessing'
+import { AnimationMixer, Clock, EquirectangularReflectionMapping, ACESFilmicToneMapping, Vector3 } from 'three'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 import { Resizer } from './components/Resizer'
 import Title from './components/Title.vue'
