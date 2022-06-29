@@ -7,8 +7,8 @@ import {
   GltfModel,
   AmbientLight,
 } from 'troisjs'
-import { ShockWaveEffect, VignetteEffect, BloomEffect, EffectComposer, EffectPass, RenderPass, BrightnessContrastEffect,  BlendFunction } from 'postprocessing'
-import { AnimationMixer, Clock, EquirectangularReflectionMapping, ACESFilmicToneMapping, Vector3 } from 'three'
+import { ShockWaveEffect, VignetteEffect, BloomEffect, EffectComposer, EffectPass, RenderPass,  BlendFunction } from 'postprocessing'
+import { AnimationMixer, Clock, EquirectangularReflectionMapping, ACESFilmicToneMapping, Vector3, LightProbe } from 'three'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 import { Resizer } from './components/Resizer'
 import Title from './components/Title.vue'
@@ -18,10 +18,10 @@ const sceneRef = ref()
 const cameraRef = ref()
 const gltfRef = ref()
 const target = new Vector3(0, 0, 0)
-const hdrimgUrl = '/images/Env_PinkGrad_512.hdr'
+const hdrimgUrl = '/images/Studio_80s.hdr'
 
 var clock = new Clock()
-let audio0,audio1,audio2,audio3, mixer, gltfMesh, composer, camera, orbitCtrl, renderer, scene, shockWaveEffect
+let audio0, audio1, audio2, audio3, mixer, gltfMesh, composer, camera, orbitCtrl, renderer, scene, shockWaveEffect
 
 onBeforeMount(() => {
   console.clear()
@@ -45,30 +45,26 @@ onMounted(() => {
   renderer.physicallyCorrectLights = true
 
   //#region postprocessing
-  composer = new EffectComposer(renderer)
+  composer = new EffectComposer(renderer, {
+    multisampling: 2
+  })
   shockWaveEffect = new ShockWaveEffect(camera, target, {
     speed: 0.25,
-    maxRadius: 0.5,
+    maxRadius: 0.015,
     waveSize: 0.03,
-    amplitude: 0.003
+    amplitude: 0.005
   })
   const bloomEffect = new BloomEffect({
     //blendFunction: BlendFunction.SCREEN,
-    luminanceThreshold: 0.1,
-    intensity: 0.5,
+    luminanceThreshold: 0.5,
+    intensity: 2,
     //radius: 0.8,
-  })
-  const brightnessContrastEffect = new BrightnessContrastEffect({
-    //blendFunction: BlendFunction.SCREEN,
-    brightness: 0.2,
-    contrast: 0.3,
   })
   const vignetteEffect = new VignetteEffect()
   const renderPass = new RenderPass(scene, camera)
   const effectPass = new EffectPass(camera,
     shockWaveEffect,
     //bloomEffect,
-    //brightnessContrastEffect,
     //vignetteEffect
   )
   // apply postprocessing
@@ -78,7 +74,6 @@ onMounted(() => {
 
   // resiser (resize the canvas and composer)
   const resizer = new Resizer(camera, composer)
-  orbitCtrl.enabled = false
 })
 
 function onReady(gltf) {
@@ -153,7 +148,7 @@ function animate() {
 </script>
 
 <template>
-  <div class="h-screen flex items-center bg-gradient-to-b from-gray-300 via-slate-400 to-gray-500">
+  <div class="h-screen flex items-center bg-gradient-to-b from-slate-200 to-indigo-400">
     <Title>
         <template #header>Acción / Reacción</template>
         <template #body>un momento de reflexión</template>
@@ -167,7 +162,7 @@ function animate() {
       <Scene ref="sceneRef">
         <GltfModel
           ref="gltfRef"
-          src="/glb/piezas/piezas_low_0004.gltf"
+          src="/glb/piezas/piezas_low_0006.gltf"
           @load="onReady"
         />
         <AmbientLight ref="light" />
