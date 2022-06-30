@@ -28,6 +28,8 @@
   "editor.wordSeparators": "`~!@#%^&*()=+[{]}\\|;:'\",.<>/?",
   "editor.cursorBlinking": "smooth",
   "editor.cursorSmoothCaretAnimation": true,
-  "editor.tabCompletion": "on",  
+  "editor.tabCompletion": "on",
+  "workbench.colorTheme": "Palenight Operator",
+  
 }
 
