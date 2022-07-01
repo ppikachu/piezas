@@ -1,10 +1,10 @@
 <template>
   <div
-    class="absolute bg-black/10 w-full h-full flex flex-col items-center justify-center tracking-widest modal-container text-white"
+    class="absolute w-full h-full flex flex-col items-center justify-end tracking-widest modal-container text-white"
     @click="showModal = false"
     v-show="showModal"
   >
-    <div class="modal-body py-4 text-xs">
+    <div class="modal-body p-8 text-xs">
       <slot name="body">default body</slot>
     </div>
   </div>

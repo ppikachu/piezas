@@ -5,10 +5,14 @@ import {
   Scene,
   Camera,
   GltfModel,
+  Plane,
+  Sphere,
+  StandardMaterial,
   AmbientLight,
   PointLight,
   RectAreaLight,
 } from "troisjs";
+//import NoisyImage from 'troisjs/src/components/noisy/NoisyImage.js'
 import {
   ShockWaveEffect,
   VignetteEffect,
@@ -27,8 +31,8 @@ const rendererRef = ref();
 const sceneRef = ref();
 const cameraRef = ref();
 const gltfRef = ref();
-const areaLight = ref();
-const areaLight2 = ref();
+const areaLightL = ref();
+const areaLightH = ref();
 const hitLightRef = ref();
 const target = new Vector3(0, 0, 0);
 
@@ -38,7 +42,6 @@ var audio0,
   audio2,
   audio3,
   once,
-  loop,
   mixer,
   light,
   light2,
@@ -60,8 +63,8 @@ onMounted(() => {
   scene = sceneRef.value.scene;
   camera = cameraRef.value.camera;
   orbitCtrl = rendererRef.value.three.cameraCtrl;
-  light = areaLight.value.light;
-  light2 = areaLight2.value.light;
+  light = areaLightL.value.light;
+  light2 = areaLightH.value.light;
   hitLight = hitLightRef.value.light;
   // audio setup
   once = true;
@@ -83,11 +86,11 @@ onMounted(() => {
     speed: 2,
     maxRadius: 0.15,
     waveSize: 0.05,
-    amplitude: 0.02,
+    amplitude: 0.03,
   });
   const bloomEffect = new BloomEffect({
     //blendFunction: BlendFunction.SCREEN,
-    luminanceThreshold: 0.5,
+    luminanceThreshold: 0.7,
     intensity: 1,
     //radius: 0.8,
   });
@@ -95,8 +98,8 @@ onMounted(() => {
   const renderPass = new RenderPass(scene, camera);
   const effectPass = new EffectPass(
     camera,
-    shockWaveEffect
-    //bloomEffect,
+    shockWaveEffect,
+    bloomEffect,
     //vignetteEffect
   );
   // apply postprocessing
@@ -106,11 +109,25 @@ onMounted(() => {
   light.lookAt(0, 0, 0);
   light2.lookAt(0, 0, 0);
   // resiser (resize the canvas and composer)
-  const resizer = new Resizer(camera, composer);
+  const resizer = new Resizer(camera, renderer, composer);
 });
 
 function onReady(gltf) {
-  gltfScene = gltf.scene;
+  gltfScene = gltf.scene
+  // self shadowing
+  const piezaHeavy = gltfScene.children[0].children[0]
+  const piezaLight = gltfScene.children[1].children[0]
+  piezaHeavy.receiveShadow = true
+  piezaLight.receiveShadow = true
+  piezaHeavy.castShadow = true
+  piezaLight.castShadow = true
+  /*// environment
+    const loadedTexture = new RGBELoader().load(hdrimgUrl, () => {
+    const envMap = loadedTexture
+    envMap.mapping = EquirectangularReflectionMapping
+    piezaHeavy.material.envMap = envMap
+    piezaLight.material.envMap = envMap
+  })*/
   // animation
   mixer = new AnimationMixer(gltf.scene);
   mixer.clipAction(gltf.animations[0]).play();
@@ -131,15 +148,17 @@ function smoothstep(min, max, value) {
 }
 
 function hitIt() {
-  console.log(hitLight)
+  // flash
   anime({
     targets: hitLight,
-    intensity: 50,
+    intensity: 4,
     duration: 100,
     direction: 'alternate',
     easing: "easeOutQuad",
   });
+  // screen distortion
   shockWaveEffect.explode();
+  // sound
   switch (getRandomInt(4)) {
     case 0:
       audio0.play();
@@ -165,8 +184,7 @@ function animate() {
     once = false;
   }
   // rotate scene
-  gltfScene.rotation.z =
-    Math.PI * smoothstep(-0.8, 0.8, Math.sin(clock.getElapsedTime() / 10));
+  gltfScene.rotation.z = Math.PI * smoothstep(-0.8, 0.8, Math.sin(clock.getElapsedTime() / 10))
   //FX render pass
   composer.render();
 }
@@ -177,46 +195,76 @@ function animate() {
     class="h-screen flex items-center bg-gradient-to-b from-cyan-900 to-pink-900"
   >
     <Title>
-      <template #body>(click para habilitar el audio)</template>
+      <template #body>1. click para habilitar el audio<br>2. arrastrar para rotar</template>
     </Title>
     <Renderer
     ref="rendererRef"
-    :alpha="true"
     shadow
-    :orbit-ctrl="{ enableDamping: true, enablePan: false }"
+    :orbit-ctrl="{
+      enableDamping: true,
+      enablePan: false,
+      minAzimuthAngle: Math.PI*1.75,
+      maxAzimuthAngle: Math.PI*0.25,
+      minPolarAngle: Math.PI*0.25,
+      maxPolarAngle: Math.PI*0.75,
+    }"
     pointer
     >
       <Camera ref="cameraRef" :position="{ x: 0, y: 0, z: 12 }" />
       <Scene ref="sceneRef">
         <!--<AmbientLight ref="light" />-->
         <RectAreaLight
-          ref="areaLight"
+          ref="areaLightL"
           width="20"
           height="7"
           :color="0x44ffff"
-          :intensity="4"
-          :position="{ x: 2, y: 5, z: -2 }"
+          :intensity="12"
+          :position="{ x: 2, y: 18, z: 5 }"
         />
         <RectAreaLight
-          ref="areaLight2"
+          ref="areaLightH"
           width="20"
           height="7"
-          :color="0xff44ff"
-          :intensity="4"
-          :position="{ x: -2, y: -4, z: 2 }"
+          :color="0x4444ff"
+          :intensity="12"
+          :position="{ x: -2, y: -18, z: 5 }"
         />
         <GltfModel
           ref="gltfRef"
-          src="/glb/piezas/piezas_low_0006.gltf"
+          src="/glb/piezas/piezas_low_0007.gltf"
           @load="onReady"
         />
+        <Plane
+          width="100"
+          height="100"
+          :position="{ x: 0, y:0 , z: -4 }"
+          :rotation="{ x: Math.PI, y: Math.PI, z: 0 }"
+        >
+          <StandardMaterial
+            :color="0x555555"
+            :roughness="1"
+            :metalness="0"
+            side="double"
+          />
+        </Plane>
+        <!--<NoisyImage
+          src="./src/assets/images/bruce.jpg"
+          :width="200"
+          :time-coef="0.001"
+          :noise-coef="128"
+          :z-coef=".1"
+          :disp-coef="0.01"
+          :position="{ x: 0, y: 0, z: -4 }"
+          :rotation="{ x: 0, y: Math.PI, z: 0 }"
+        />-->
         <PointLight
           helper
           ref="hitLightRef"
+          :color="0xffffff"
           :intensity="0"
-          :distance="5"
-          :decay="1"
-          :position="{x:0, y:0, z:.1}"
+          :distance="48"
+          :decay="2"
+          :position="{x:0, y:0, z:.2}"
           castShadow
         />
       </Scene>

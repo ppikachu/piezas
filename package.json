@@ -11,7 +11,7 @@
     "gsap": "^3.10.4",
     "pixi.js": "^6.4.2",
     "postprocessing": "^6.28.1",
-    "three": "0.141.0",
+    "three": "0.142.0",
     "troika-three-text": "^0.46.4",
     "troisjs": "^0.3.4",
     "vue": "^3.2.31",
