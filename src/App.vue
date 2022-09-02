@@ -247,16 +247,6 @@ function animate() {
             side="double"
           />
         </Plane>
-        <!--<NoisyImage
-          src="./src/assets/images/bruce.jpg"
-          :width="200"
-          :time-coef="0.001"
-          :noise-coef="128"
-          :z-coef=".1"
-          :disp-coef="0.01"
-          :position="{ x: 0, y: 0, z: -4 }"
-          :rotation="{ x: 0, y: Math.PI, z: 0 }"
-        />-->
         <PointLight
           helper
           ref="hitLightRef"
