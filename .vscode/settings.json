@@ -1,7 +1,6 @@
 {
   // Theming
   //"workbench.iconTheme": "city-lights-icons-vsc",
-  "window.zoomLevel": 1,
   "editor.fontFamily": "Dank Mono",
   //"editor.fontSize": 16,
   "editor.fontLigatures": true,
@@ -17,7 +16,6 @@
   "editor.linkedEditing": true,
   "terminal.integrated.fontSize": 12,
   "terminal.integrated.lineHeight": 1,
-  "debug.console.fontSize": 12,
   "workbench.editor.limit.enabled": true,
   "workbench.editor.limit.excludeDirty": true,
   "workbench.editor.limit.perEditorGroup": true,
@@ -27,9 +25,8 @@
   // Include "-" in word selection.
   "editor.wordSeparators": "`~!@#%^&*()=+[{]}\\|;:'\",.<>/?",
   "editor.cursorBlinking": "smooth",
-  "editor.cursorSmoothCaretAnimation": true,
+  "editor.cursorSmoothCaretAnimation": "on",
   "editor.tabCompletion": "on",
   "workbench.colorTheme": "Palenight Operator",
-  
 }
 

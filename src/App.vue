@@ -6,13 +6,10 @@ import {
   Camera,
   GltfModel,
   Plane,
-  Sphere,
   StandardMaterial,
-  AmbientLight,
   PointLight,
   RectAreaLight,
 } from "troisjs";
-//import NoisyImage from 'troisjs/src/components/noisy/NoisyImage.js'
 import {
   ShockWaveEffect,
   VignetteEffect,
@@ -20,7 +17,6 @@ import {
   EffectComposer,
   EffectPass,
   RenderPass,
-  BlendFunction,
 } from "postprocessing";
 import { AnimationMixer, Clock, ACESFilmicToneMapping, Vector3 } from "three";
 import { Resizer } from "./components/Resizer";
@@ -89,10 +85,8 @@ onMounted(() => {
     amplitude: 0.03,
   });
   const bloomEffect = new BloomEffect({
-    //blendFunction: BlendFunction.SCREEN,
     luminanceThreshold: 0.7,
     intensity: 1,
-    //radius: 0.8,
   });
   const vignetteEffect = new VignetteEffect();
   const renderPass = new RenderPass(scene, camera);
@@ -100,7 +94,6 @@ onMounted(() => {
     camera,
     shockWaveEffect,
     bloomEffect,
-    //vignetteEffect
   );
   // apply postprocessing
   composer.addPass(renderPass);
